@@ -225,7 +225,8 @@ class ResNet(nn.Module):
 
     def tokenselect(self, x_ext, module, stage, labels, attention):       #从M个模态中选择最有效的块;list7(22,128,56,56)
         x_scores = module(x_ext)                #list7(B,128,57,57)-list7(B,1,57,57)
-        x_scores = torch.where(x_scores < 1e-3, torch.zeros_like(x_scores), x_scores)
+        # 将小于阈值值替换为 0，建议选择比较小的值，较大的值可能导致有用特征被丢弃
+        x_scores = torch.where(x_scores < 1e-5, torch.zeros_like(x_scores), x_scores)
         x_ext = x_scores * x_ext + x_ext    #输出list7(22,128,56,56)
         return x_ext
 
@@ -272,7 +273,7 @@ class ResNet(nn.Module):
         y = self.layer1_d(y)                            #(B,128,57,57)-(B,256,57,57)
         x_attention = self.attention_1(x)               #(B,256,57,57)-(B,256,1,1)
         y_attention = self.attention_1_d(y)
-        # 将小于 1e-3 的值替换为 0，
+        # 将小于阈值值替换为 0，建议选择比较小的值，较大的值可能导致有用特征被丢弃
         x_attention = torch.where(x_attention < 1e-5, torch.zeros_like(x_attention), x_attention)
         y_attention = torch.where(y_attention < 1e-5, torch.zeros_like(y_attention), y_attention)
         x = torch.mul(x, x_attention)                   #(B,256,57,57)
@@ -287,7 +288,7 @@ class ResNet(nn.Module):
         y = self.layer2_d(y)                     #(B,256,57,57)—#(B,512,29,29)
         x_attention = self.attention_2(x)
         y_attention = self.attention_2_d(y)
-        # 将小于 1e-3 的值替换为 0
+        # 将小于阈值值替换为 0，建议选择比较小的值，较大的值可能导致有用特征被丢弃
         x_attention = torch.where(x_attention < 1e-5, torch.zeros_like(x_attention), x_attention)
         y_attention = torch.where(y_attention < 1e-5, torch.zeros_like(y_attention), y_attention)
         x = torch.mul(x, x_attention)
@@ -301,7 +302,7 @@ class ResNet(nn.Module):
         y = self.layer3_d(y)
         x_attention = self.attention_3(x)
         y_attention = self.attention_3_d(y)
-        # 将小于 1e-3 的值替换为 0，建议选择比较小的值，较大的值可能导致有用特征被丢弃
+        # 将小于阈值值替换为 0，建议选择比较小的值，较大的值可能导致有用特征被丢弃
         x_attention = torch.where(x_attention < 1e-5, torch.zeros_like(x_attention), x_attention)
         y_attention = torch.where(y_attention < 1e-5, torch.zeros_like(y_attention), y_attention)
         x = torch.mul(x, x_attention)
@@ -316,7 +317,7 @@ class ResNet(nn.Module):
         y = self.layer4_d(y)
         x_attention = self.attention_4(x)
         y_attention = self.attention_4_d(y)
-        # 将小于 1e-3 的值替换为 0
+        # 将小于阈值值替换为 0，建议选择比较小的值，较大的值可能导致有用特征被丢弃
         x_attention = torch.where(x_attention < 1e-5, torch.zeros_like(x_attention), x_attention)
         y_attention = torch.where(y_attention < 1e-5, torch.zeros_like(y_attention), y_attention)
         x = torch.mul(x, x_attention)
